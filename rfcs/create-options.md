@@ -74,8 +74,8 @@ This allows current deployments to function correctly without any changes.
 The sequence number consists of two bytes, representing zero-padded integers (`01` - `15`).
 This is to allow string compare of these fields.
 
-The sequence numbers must be provided without gaps, and with a limit of 15.
-Sixteen `512b` chunks allows for `8kb` of space, which should be more than enough based on customer feedback.
+The sequence numbers must be provided without gaps, and with a limit of 7.
+Eight `512b` chunks allows for `4kb` of space, which should be more than enough based on customer feedback.
 
 ## Example
 Here is an example of a valid Edge Agent twin with extended `createOptions`:
