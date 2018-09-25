@@ -71,7 +71,7 @@ To workaround this limitation, the new fields will append a sequence number to t
 
 To preserve backwards compatibility, the sequence number will start at 1, with the original `createOptions` field remaining unchanged, with an implicit sequence number of 0.
 This allows current deployments to function correctly without any changes.
-The sequence number consists of two bytes, representing zero-padded integers (`01` - `15`).
+The sequence number consists of two bytes, representing zero-padded integers (`01` - `07`).
 This is to allow string compare of these fields.
 
 The sequence numbers must be provided without gaps, and with a limit of 7.
