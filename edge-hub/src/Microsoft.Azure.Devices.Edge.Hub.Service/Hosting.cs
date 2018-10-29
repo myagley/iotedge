@@ -4,6 +4,7 @@ namespace Microsoft.Azure.Devices.Edge.Hub.Service
 {
     using System.Net;
     using System.Net.Sockets;
+    using System.Security.Authentication;
     using System.Security.Cryptography.X509Certificates;
     using Autofac;
     using Microsoft.AspNetCore.Hosting;
@@ -31,6 +32,10 @@ namespace Microsoft.Azure.Devices.Edge.Hub.Service
                     options.Listen(!Socket.OSSupportsIPv6 ? IPAddress.Any : IPAddress.IPv6Any, port, listenOptions =>
                     {
                         listenOptions.UseHttps(serverCertificate);
+                    });
+                    options.ConfigureHttpsDefaults(opt =>
+                    {
+                        opt.SslProtocols = SslProtocols.Tls12;
                     });
                 })
                 .UseSockets()

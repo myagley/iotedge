@@ -148,7 +148,9 @@ namespace Microsoft.Azure.Devices.Edge.Hub.Mqtt
                     // configure the channel pipeline of the new Channel by adding handlers
                     TlsSettings serverSettings = new ServerTlsSettings(
                             certificate: this.tlsCertificate,
-                            negotiateClientCertificate: this.clientCertAuthAllowed
+                            negotiateClientCertificate: this.clientCertAuthAllowed,
+                            checkCertificateRevocation: false,
+                            enabledProtocols: System.Security.Authentication.SslProtocols.Tls12
                         );
 
                     channel.Pipeline.AddLast(new TlsHandler(stream =>
