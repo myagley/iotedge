@@ -101,6 +101,7 @@ fn main() {
         .define("skip_samples", "ON")
         .set_platform_defines()
         .define("run_valgrind", "OFF")
+        .cflag("-Wno-error")
         .profile("Release")
         .build();
 
@@ -114,6 +115,7 @@ fn main() {
         .define("skip_samples", "ON")
         .set_platform_defines()
         .define("run_valgrind", "OFF")
+        .cflag("-Wno-error")
         .profile("Release")
         .build();
 
@@ -137,6 +139,7 @@ fn main() {
         .define("skip_samples", "ON")
         .set_platform_defines()
         .set_build_shared()
+        .cflag("-Wno-error")
         .profile("Release")
         .build();
 
