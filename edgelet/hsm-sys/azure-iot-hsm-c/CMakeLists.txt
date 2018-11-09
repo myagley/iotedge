@@ -70,8 +70,8 @@ if(MSVC)
 
     add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -fPIC -Wall -Werror -Wextra -Wformat=2 -Wformat-security -std=c99 ")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fPIC -Wall -Werror -Wextra -Wformat=2 -Wformat-security ")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -fPIC -Wall -Wextra -Wformat=2 -Wformat-security -std=c99 ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fPIC -Wall -Wextra -Wformat=2 -Wformat-security ")
 
     if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
         set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wtrampolines -fstack-protector-all -Wstack-protector --param ssp-buffer-size=4 ")
