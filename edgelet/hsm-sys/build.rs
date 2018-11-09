@@ -131,7 +131,7 @@ fn main() {
     let iothsm = Config::new("azure-iot-hsm-c")
         .define(SSL_OPTION, "ON")
         .define("CMAKE_BUILD_TYPE", "Release")
-        .define("run_unittests", rut)
+        .define("run_unittests", "OFF")
         .define("use_default_uuid", "ON")
         .define("use_http", "OFF")
         .define("skip_samples", "ON")
