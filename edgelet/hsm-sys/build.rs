@@ -102,6 +102,7 @@ fn main() {
         .set_platform_defines()
         .define("run_valgrind", "OFF")
         .cflag("-Wno-error")
+        .cxxflag("-Wno-error")
         .profile("Release")
         .build();
 
@@ -116,6 +117,7 @@ fn main() {
         .set_platform_defines()
         .define("run_valgrind", "OFF")
         .cflag("-Wno-error")
+        .cxxflag("-Wno-error")
         .profile("Release")
         .build();
 
@@ -140,6 +142,7 @@ fn main() {
         .set_platform_defines()
         .set_build_shared()
         .cflag("-Wno-error")
+        .cxxflag("-Wno-error")
         .profile("Release")
         .build();
 
