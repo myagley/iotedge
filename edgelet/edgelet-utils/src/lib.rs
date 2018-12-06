@@ -9,6 +9,7 @@
 #![cfg_attr(feature = "cargo-clippy", deny(clippy, clippy_pedantic))]
 #![cfg_attr(feature = "cargo-clippy", allow(stutter, use_self))]
 
+#[macro_use]
 extern crate failure;
 #[cfg(test)]
 extern crate futures;
