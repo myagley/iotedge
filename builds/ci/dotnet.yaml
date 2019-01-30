@@ -18,18 +18,16 @@ jobs:
       TestEnvironment: linux
       NetCorePackageUri: https://download.microsoft.com/download/4/0/9/40920432-3302-47a8-b13c-bbc4848ad114/dotnet-sdk-2.1.302-linux-x64.tar.gz
     steps:
+      - task: AzurePowerShell@2
+        displayName: 'Install test certificate'
+        inputs:
+          azureSubscription: "$(azure.subscription)"
+          ScriptPath: 'scripts/windows/setup/Install-VaultCertificate.ps1'
+          ScriptArguments: '-VaultName $(kv.name) -CertificateName IoTEdgeTestCert'
+          azurePowerShellVersion: LatestVersion
       - script: scripts/linux/installPrereqs.sh -u $(NetCorePackageUri)
         name: install_dependencies
         displayName: Install dependencies
-      - script: scripts/linux/installKvPrereqs_Ubuntu.sh
-        name: install_test_dependencies
-        displayName: 'Install test dependencies'
-      - bash: |
-          az login --service-principal --username $(kv.sp.user) --tenant $(kv.sp.tenant) --password $(kv.sp.password)
-          scripts/linux/downloadAndInstallCert.sh -c IoTEdgeTestCert -v $(kv.name)
-          scripts/linux/downloadAndInstallCert.sh -c IotHubMqttHeadCert -v $(kv.name) -s 'Root'
-        name: install_certs
-        displayName: 'Install test certificate'
       - script: scripts/linux/buildBranch.sh -c "$BUILD_CONFIGURATION" --no-rocksdb-bin
         name: build
         displayName: 'Build'
