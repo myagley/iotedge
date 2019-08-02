@@ -13,3 +13,7 @@ dpkg -i /opt/moby-cli.deb
 
 rm /opt/moby-engine.deb
 rm /opt/moby-cli.deb
+
+systemctl enable iotedge.service || true
+systemctl enable iotedge.socket || true
+systemctl enable iotedge.mgmt.socket || true

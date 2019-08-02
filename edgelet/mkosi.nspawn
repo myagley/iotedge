@@ -1,0 +1,6 @@
+[Exec]
+Capability=all
+SystemCallFilter=add_key keyctl
+
+[Files]
+Bind=/sys/fs/cgroup

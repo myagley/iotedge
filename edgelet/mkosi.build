@@ -1,0 +1,31 @@
+#!/bin/bash
+set -ex
+
+# Install Rust
+curl https://sh.rustup.rs -sSf | sh -s -- -y
+source $HOME/.cargo/env
+
+# Build libiothsm-std
+pushd hsm-sys/azure-iot-hsm-c
+cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr  -DBUILD_SHARED=ON -Drun_unittests=OFF -Duse_emulator=OFF -DCMAKE_BUILD_TYPE=Release -Duse_http=Off .
+make
+make install
+DESTDIR="" make install
+popd
+
+# Build iotedged
+LIBIOTHSM_NOBUILD=true make release
+make install-image
+
+# Let's use the distro-provided OS metadata but let's extend it a tiny
+# bit indicating that we are implementing a portable service
+mkdir -p "$DESTDIR"/etc
+cp /usr/lib/os-release "$DESTDIR"/etc/os-release
+cat >> "$DESTDIR"/etc/os-release <<EOF
+PORTABLE_PRETTY_NAME="Azure IoT Edge Runtime"
+EOF
+
+# The default profiles mount the host's /etc/resolv.conf into our
+# image. For that the file to mount over needs to exist. Let's create
+# it here.
+touch "$DESTDIR"/etc/resolv.conf
