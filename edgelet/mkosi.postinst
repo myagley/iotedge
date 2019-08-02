@@ -1,0 +1,15 @@
+#!/bin/bash
+set -ex
+
+# Install Moby
+MOBY_ENGINE_VERSION="3.0.6"
+MOBY_CLI_VERSION="3.0.6"
+
+curl "https://packages.microsoft.com/ubuntu/18.04/prod/pool/main/m/moby-engine/moby-engine_${MOBY_ENGINE_VERSION}_amd64.deb" -o "/opt/moby-engine.deb"
+curl "https://packages.microsoft.com/ubuntu/18.04/prod/pool/main/m/moby-cli/moby-cli_${MOBY_CLI_VERSION}_amd64.deb" -o "/opt/moby-cli.deb"
+
+dpkg -i /opt/moby-engine.deb
+dpkg -i /opt/moby-cli.deb
+
+rm /opt/moby-engine.deb
+rm /opt/moby-cli.deb

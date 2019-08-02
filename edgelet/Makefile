@@ -135,6 +135,23 @@ install: release
 	$(GZIP) $(DESTDIR)$(docdir)/LICENSE
 	$(GZIP) $(DESTDIR)$(docdir)/ThirdPartyNotices
 
+install-image: release
+	$(INSTALL_PROGRAM) -D $(TARGET)/iotedged $(DESTDIR)$(bindir)/iotedged
+	$(INSTALL_PROGRAM) -D $(TARGET)/iotedge $(DESTDIR)$(bindir)/iotedge
+	$(INSTALL_DATA) -D $(srcdir)/contrib/config/linux/debian/config.yaml $(DESTDIR)$(sysconfdir)/iotedge/config.yaml
+	$(INSTALL_DATA) -D $(srcdir)/contrib/systemd/debian-image/iotedge.service $(DESTDIR)$(unitdir)/iotedge.service
+	$(INSTALL_DATA) -D $(srcdir)/contrib/systemd/debian-image/iotedge.socket $(DESTDIR)$(unitdir)/iotedge.socket
+	$(INSTALL_DATA) -D $(srcdir)/contrib/systemd/debian-image/iotedge.mgmt.socket $(DESTDIR)$(unitdir)/iotedge.mgmt.socket
+	$(INSTALL_DATA) -D $(srcdir)/contrib/man/man1/iotedge.1 $(DESTDIR)$(man1)/iotedge.1
+	$(GZIP) $(DESTDIR)$(man1)/iotedge.1
+	$(INSTALL_DATA) -D $(srcdir)/contrib/man/man8/iotedged.8 $(DESTDIR)$(man8)/iotedged.8
+	$(GZIP) $(DESTDIR)$(man8)/iotedged.8
+	$(INSTALL_DATA) -D $(srcdir)/contrib/docs/LICENSE $(DESTDIR)$(docdir)/LICENSE
+	$(INSTALL_DATA) -D $(srcdir)/contrib/docs/ThirdPartyNotices $(DESTDIR)$(docdir)/ThirdPartyNotices
+	$(INSTALL_DATA) -D $(srcdir)/contrib/docs/trademark $(DESTDIR)$(docdir)/trademark
+	$(GZIP) $(DESTDIR)$(docdir)/LICENSE
+	$(GZIP) $(DESTDIR)$(docdir)/ThirdPartyNotices
+
 uninstall:
 	rm -f $(DESTDIR)$(bindir)/iotedged
 	rm -f $(DESTDIR)$(bindir)/iotedge

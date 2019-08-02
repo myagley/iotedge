@@ -1,6 +1,10 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+include (CPack)
+# include (GNUInstallDirs)
+include (InstallRequiredSystemLibraries)
+
 cmake_minimum_required(VERSION 2.8.11)
 project(iothsm)
 set (iothsm_VERSION_MAJOR 1)
@@ -159,7 +163,6 @@ else()
 endif(WIN32)
 
 # CPack
-include (InstallRequiredSystemLibraries)
 
 if (NOT CPACK_PACKAGE_VERSION)
     set (CPACK_PACKAGE_VERSION_MAJOR "${iothsm_VERSION_MAJOR}")
@@ -185,8 +188,6 @@ set (CPACK_RPM_PACKAGE_URL "http://github.com/azure/iotedge")
 set (CPACK_RPM_PACKAGE_VENDOR "Microsoft Corporation")
 set (CPACK_RPM_PACKAGE_DESCRIPTION "Azure IoT standard mode HSM lib")
 set (CPACK_RPM_PACKAGE_LICENSE "Proprietary")
-
-include (CPack)
 
 if (${run_unittests})
     if(WIN32)

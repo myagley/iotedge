@@ -1,0 +1,26 @@
+[Distribution]
+Distribution=ubuntu
+Release=bionic
+Repositories=main,https://packages.microsoft.com/ubuntu/18.04/multiarch/prod/
+
+[Output]
+Format=raw_gpt
+Output=iotedge.raw
+
+[Partitions]
+RootSize=10G
+
+[Packages]
+WithNetwork=yes
+Packages=
+	ca-certificates
+	curl
+	iptables
+	libssl1.1
+	vim
+BuildPackages=
+	build-essential
+	cmake
+	libssl-dev
+	pkg-config
+	uuid-dev

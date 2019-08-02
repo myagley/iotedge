@@ -4,3 +4,16 @@ target
 cobertura.xml
 report/
 lcov.info
+
+mkosi.cache
+/.mkosi-*
+/mkosi.build
+/mkosi.egg-info
+/mkosi.extra
+/mkosi.nspawn
+/mkosi.rootpw
+/SHA256SUMS
+/SHA256SUMS.gpg
+*.raw
+*.raw.*
+*.lck
