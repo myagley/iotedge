@@ -11,6 +11,7 @@ Output=iotedge.raw
 RootSize=10G
 
 [Packages]
+SourceFileTransfer=copy-all
 WithNetwork=yes
 Packages=
 	ca-certificates
