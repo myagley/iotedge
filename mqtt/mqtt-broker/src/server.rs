@@ -7,23 +7,19 @@ use tokio::{net::ToSocketAddrs, sync::oneshot};
 use tracing::{debug, error, info, span, warn, Level};
 use tracing_futures::Instrument;
 
-use crate::auth::{Authenticator, Authorizer};
+use crate::auth::{Authenticator, MakeAuthorizer};
 use crate::broker::{Broker, BrokerHandle, BrokerState};
 use crate::transport::TransportBuilder;
 use crate::{connection, Error, InitializeBrokerError, Message, SystemEvent};
 
-pub struct Server<N, Z>
-where
-    N: Authenticator,
-    Z: Authorizer,
-{
+pub struct Server<N, Z> {
     broker: Broker<N, Z>,
 }
 
 impl<N, Z> Server<N, Z>
 where
     N: Authenticator + Send + Sync + 'static,
-    Z: Authorizer + Send + Sync + 'static,
+    Z: MakeAuthorizer + Send + Sync + 'static,
 {
     pub fn from_broker(broker: Broker<N, Z>) -> Self {
         Self { broker }

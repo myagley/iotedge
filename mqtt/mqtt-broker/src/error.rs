@@ -54,6 +54,9 @@ pub enum Error {
 
     #[error("Unable to start broker.")]
     InitializeBroker(#[from] InitializeBrokerError),
+
+    #[error("Unable to make an authorizer.")]
+    MakeAuthorizer(#[source] Box<dyn std::error::Error + Send>),
 }
 
 /// Represents errors occurred while bootstrapping broker.

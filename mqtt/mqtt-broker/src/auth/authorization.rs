@@ -28,7 +28,19 @@ pub trait MakeAuthorizer {
     type Authorizer: Authorizer;
     type Error: std::error::Error + Send;
 
-    fn make_authorizer(&mut self) -> Result<Self::Authorizer, Self::Error>;
+    fn make_authorizer(self) -> Result<Self::Authorizer, Self::Error>;
+}
+
+impl<F> MakeAuthorizer for F
+where
+    F: Fn(Activity) -> Result<bool, AuthorizeError> + Sync,
+{
+    type Authorizer = Self;
+    type Error = AuthorizeError;
+
+    fn make_authorizer(self) -> Result<Self::Authorizer, Self::Error> {
+        Ok(self)
+    }
 }
 
 /// Authorization error type placeholder.
@@ -48,6 +60,15 @@ impl Authorizer for DenyAll {
     }
 }
 
+impl MakeAuthorizer for DenyAll {
+    type Authorizer = Self;
+    type Error = AuthorizeError;
+
+    fn make_authorizer(self) -> Result<Self::Authorizer, Self::Error> {
+        Ok(self)
+    }
+}
+
 /// Default implementation that always allows any operation a client intends to perform.
 pub struct AllowAll;
 
@@ -56,6 +77,15 @@ impl Authorizer for AllowAll {
 
     fn authorize(&self, _: Activity) -> Result<bool, Self::Error> {
         Ok(true)
+    }
+}
+
+impl MakeAuthorizer for AllowAll {
+    type Authorizer = Self;
+    type Error = AuthorizeError;
+
+    fn make_authorizer(self) -> Result<Self::Authorizer, Self::Error> {
+        Ok(self)
     }
 }
 
@@ -223,7 +253,7 @@ mod tests {
     }
 
     fn default_auth_always_deny_any_action() {
-        let auth = DefaultAuthorizer;
+        let auth = DenyAll;
         let activity = Activity::new(
             "client-auth-id",
             "client-id",

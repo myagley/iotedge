@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::{panic, thread};
 
 use crossbeam_channel::{Receiver, Sender};
@@ -7,7 +8,8 @@ use serde::{Deserialize, Serialize};
 use tracing::{debug, error, info, span, warn, Level};
 
 use crate::auth::{
-    Activity, Authenticator, Authorizer, Credentials, DefaultAuthenticator, DenyAll, Operation,
+    Activity, Authenticator, Authorizer, Credentials, DefaultAuthenticator, DenyAll,
+    MakeAuthorizer, Operation,
 };
 use crate::session::{ConnectedSession, Session, SessionState};
 use crate::{
@@ -37,7 +39,7 @@ pub struct Broker<N, Z> {
 impl<N, Z> Broker<N, Z>
 where
     N: Authenticator + Send + 'static,
-    Z: Authorizer + Send + 'static,
+    Z: MakeAuthorizer + Send + 'static,
 {
     pub fn handle(&self) -> BrokerHandle {
         BrokerHandle(self.sender.clone())
@@ -61,23 +63,17 @@ where
         // The `handle.join()` is used to propagate the panic from the broker thread
         // to the thread that is handling the async task.
 
-        let broker_loop = BrokerLoop {
-            messages: self.messages,
-            sessions: self.sessions,
-            retained: self.retained,
-            authenticator: self.authenticator,
-            authorizer: self.authorizer,
-        };
-
         let (tx, rx) = tokio::sync::oneshot::channel::<()>();
         let handle = thread::Builder::new()
             .name("mqtt::broker".to_string())
             .spawn(|| {
+                // let broker_loop = self.try_into_loop()?;
+                let broker_loop = BrokerLoop::try_from(self)?;
                 let state = broker_loop.pump();
                 if let Err(_e) = tx.send(()) {
                     error!("failed to signal the event loop that the broker thread is exiting");
                 }
-                state
+                Ok(state)
             })
             .expect("failed to spawn broker thread");
 
@@ -93,7 +89,8 @@ where
 
         // propagate any panics onto the event loop thread
         match handle.join() {
-            Ok(state) => Ok(state),
+            Ok(Ok(state)) => Ok(state),
+            Ok(Err(e)) => Err(e),
             Err(e) => panic::resume_unwind(e),
         }
     }
@@ -109,8 +106,8 @@ struct BrokerLoop<N, Z> {
 
 impl<N, Z> BrokerLoop<N, Z>
 where
-    N: Authenticator + Send + 'static,
-    Z: Authorizer + Send + 'static,
+    N: Authenticator,
+    Z: Authorizer,
 {
     fn pump(mut self) -> BrokerState {
         while let Ok(message) = self.messages.recv() {
@@ -942,6 +939,29 @@ where
     Ok(())
 }
 
+impl<N, M> TryFrom<Broker<N, M>> for BrokerLoop<N, <M as MakeAuthorizer>::Authorizer>
+where
+    M: MakeAuthorizer,
+    <M as MakeAuthorizer>::Error: 'static,
+{
+    type Error = Error;
+
+    fn try_from(value: Broker<N, M>) -> Result<Self, Self::Error> {
+        let authorizer = value
+            .authorizer
+            .make_authorizer()
+            .map_err(|e| Error::MakeAuthorizer(Box::new(e)))?;
+        let broker_loop = BrokerLoop {
+            messages: value.messages,
+            sessions: value.sessions,
+            retained: value.retained,
+            authenticator: value.authenticator,
+            authorizer,
+        };
+        Ok(broker_loop)
+    }
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 pub struct BrokerState {
     retained: HashMap<String, proto::Publication>,
@@ -977,7 +997,7 @@ impl Default for BrokerBuilder<DefaultAuthenticator, DenyAll> {
 impl<N, Z> BrokerBuilder<N, Z>
 where
     N: Authenticator,
-    Z: Authorizer,
+    Z: MakeAuthorizer,
 {
     pub fn authenticator<N1>(self, authenticator: N1) -> BrokerBuilder<N1, Z>
     where
@@ -992,7 +1012,7 @@ where
 
     pub fn authorizer<Z1>(self, authorizer: Z1) -> BrokerBuilder<N, Z1>
     where
-        Z1: Authorizer,
+        Z1: MakeAuthorizer,
     {
         BrokerBuilder {
             state: self.state,
@@ -1576,10 +1596,11 @@ pub(crate) mod tests {
 
     #[test]
     fn test_add_session_empty_transient() {
-        let mut broker = BrokerBuilder::default()
+        let broker = BrokerBuilder::default()
             .authenticator(|_| Ok(Some(AuthId::Anonymous)))
             .authorizer(|_| Ok(true))
             .build();
+        let mut broker = BrokerLoop::try_from(broker).unwrap();
 
         let id = "id1".to_string();
         let client_id = ClientId::from(id.clone());
@@ -1602,10 +1623,11 @@ pub(crate) mod tests {
 
     #[test]
     fn test_add_session_empty_persistent() {
-        let mut broker = BrokerBuilder::default()
+        let broker = BrokerBuilder::default()
             .authenticator(|_| Ok(Some(AuthId::Anonymous)))
             .authorizer(|_| Ok(true))
             .build();
+        let mut broker = BrokerLoop::try_from(broker).unwrap();
 
         let id = "id1".to_string();
         let client_id = ClientId::from(id.clone());
@@ -1629,10 +1651,11 @@ pub(crate) mod tests {
     #[test]
     #[should_panic]
     fn test_add_session_same_connection_transient() {
-        let mut broker = BrokerBuilder::default()
+        let broker = BrokerBuilder::default()
             .authenticator(|_| Ok(Some(AuthId::Anonymous)))
             .authorizer(|_| Ok(true))
             .build();
+        let mut broker = BrokerLoop::try_from(broker).unwrap();
 
         let id = "id1".to_string();
         let client_id = ClientId::from(id.clone());
@@ -1658,10 +1681,11 @@ pub(crate) mod tests {
     #[test]
     #[should_panic]
     fn test_add_session_same_connection_persistent() {
-        let mut broker = BrokerBuilder::default()
+        let broker = BrokerBuilder::default()
             .authenticator(|_| Ok(Some(AuthId::Anonymous)))
             .authorizer(|_| Ok(true))
             .build();
+        let mut broker = BrokerLoop::try_from(broker).unwrap();
 
         let id = "id1".to_string();
         let client_id = ClientId::from(id.clone());
@@ -1686,10 +1710,11 @@ pub(crate) mod tests {
 
     #[test]
     fn test_add_session_different_connection_transient_then_transient() {
-        let mut broker = BrokerBuilder::default()
+        let broker = BrokerBuilder::default()
             .authenticator(|_| Ok(Some(AuthId::Anonymous)))
             .authorizer(|_| Ok(true))
             .build();
+        let mut broker = BrokerLoop::try_from(broker).unwrap();
 
         let id = "id1".to_string();
         let client_id = ClientId::from(id.clone());
@@ -1712,10 +1737,11 @@ pub(crate) mod tests {
 
     #[test]
     fn test_add_session_different_connection_transient_then_persistent() {
-        let mut broker = BrokerBuilder::default()
+        let broker = BrokerBuilder::default()
             .authenticator(|_| Ok(Some(AuthId::Anonymous)))
             .authorizer(|_| Ok(true))
             .build();
+        let mut broker = BrokerLoop::try_from(broker).unwrap();
 
         let id = "id1".to_string();
         let client_id = ClientId::from(id.clone());
@@ -1738,10 +1764,11 @@ pub(crate) mod tests {
 
     #[test]
     fn test_add_session_different_connection_persistent_then_transient() {
-        let mut broker = BrokerBuilder::default()
+        let broker = BrokerBuilder::default()
             .authenticator(|_| Ok(Some(AuthId::Anonymous)))
             .authorizer(|_| Ok(true))
             .build();
+        let mut broker = BrokerLoop::try_from(broker).unwrap();
 
         let id = "id1".to_string();
         let client_id = ClientId::from(id.clone());
@@ -1764,10 +1791,11 @@ pub(crate) mod tests {
 
     #[test]
     fn test_add_session_different_connection_persistent_then_persistent() {
-        let mut broker = BrokerBuilder::default()
+        let broker = BrokerBuilder::default()
             .authenticator(|_| Ok(Some(AuthId::Anonymous)))
             .authorizer(|_| Ok(true))
             .build();
+        let mut broker = BrokerLoop::try_from(broker).unwrap();
 
         let id = "id1".to_string();
         let client_id = ClientId::from(id.clone());
@@ -1790,10 +1818,11 @@ pub(crate) mod tests {
 
     #[test]
     fn test_add_session_offline_persistent() {
-        let mut broker = BrokerBuilder::default()
+        let broker = BrokerBuilder::default()
             .authenticator(|_| Ok(Some(AuthId::Anonymous)))
             .authorizer(|_| Ok(true))
             .build();
+        let mut broker = BrokerLoop::try_from(broker).unwrap();
 
         let id = "id1".to_string();
         let client_id = ClientId::from(id.clone());
@@ -1825,10 +1854,11 @@ pub(crate) mod tests {
 
     #[test]
     fn test_add_session_offline_transient() {
-        let mut broker = BrokerBuilder::default()
+        let broker = BrokerBuilder::default()
             .authenticator(|_| Ok(Some(AuthId::Anonymous)))
             .authorizer(|_| Ok(true))
             .build();
+        let mut broker = BrokerLoop::try_from(broker).unwrap();
 
         let id = "id1".to_string();
         let client_id = ClientId::from(id.clone());
