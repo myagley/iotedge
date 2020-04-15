@@ -4,7 +4,9 @@ mod authorization;
 pub use authentication::{
     AuthenticateError, Authenticator, Certificate, Credentials, DefaultAuthenticator,
 };
-pub use authorization::{Activity, AuthorizeError, Authorizer, DefaultAuthorizer, Operation};
+pub use authorization::{
+    Activity, AllowAll, AuthorizeError, Authorizer, DenyAll, MakeAuthorizer, Operation,
+};
 
 /// Authenticated MQTT client identity.
 #[derive(Clone, Debug, PartialEq)]

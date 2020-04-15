@@ -7,8 +7,7 @@ use serde::{Deserialize, Serialize};
 use tracing::{debug, error, info, span, warn, Level};
 
 use crate::auth::{
-    Activity, Authenticator, Authorizer, Credentials, DefaultAuthenticator, DefaultAuthorizer,
-    Operation,
+    Activity, Authenticator, Authorizer, Credentials, DefaultAuthenticator, DenyAll, Operation,
 };
 use crate::session::{ConnectedSession, Session, SessionState};
 use crate::{
@@ -62,11 +61,19 @@ where
         // The `handle.join()` is used to propagate the panic from the broker thread
         // to the thread that is handling the async task.
 
+        let broker_loop = BrokerLoop {
+            messages: self.messages,
+            sessions: self.sessions,
+            retained: self.retained,
+            authenticator: self.authenticator,
+            authorizer: self.authorizer,
+        };
+
         let (tx, rx) = tokio::sync::oneshot::channel::<()>();
         let handle = thread::Builder::new()
             .name("mqtt::broker".to_string())
             .spawn(|| {
-                let state = self.broker_loop();
+                let state = broker_loop.pump();
                 if let Err(_e) = tx.send(()) {
                     error!("failed to signal the event loop that the broker thread is exiting");
                 }
@@ -90,8 +97,22 @@ where
             Err(e) => panic::resume_unwind(e),
         }
     }
+}
 
-    fn broker_loop(mut self) -> BrokerState {
+struct BrokerLoop<N, Z> {
+    messages: Receiver<Message>,
+    sessions: HashMap<ClientId, Session>,
+    retained: HashMap<String, proto::Publication>,
+    authenticator: N,
+    authorizer: Z,
+}
+
+impl<N, Z> BrokerLoop<N, Z>
+where
+    N: Authenticator + Send + 'static,
+    Z: Authorizer + Send + 'static,
+{
+    fn pump(mut self) -> BrokerState {
         while let Ok(message) = self.messages.recv() {
             match message {
                 Message::Client(client_id, event) => {
@@ -943,12 +964,12 @@ pub struct BrokerBuilder<N, Z> {
     authorizer: Z,
 }
 
-impl Default for BrokerBuilder<DefaultAuthenticator, DefaultAuthorizer> {
+impl Default for BrokerBuilder<DefaultAuthenticator, DenyAll> {
     fn default() -> Self {
         Self {
             state: None,
             authenticator: DefaultAuthenticator,
-            authorizer: DefaultAuthorizer,
+            authorizer: DenyAll,
         }
     }
 }

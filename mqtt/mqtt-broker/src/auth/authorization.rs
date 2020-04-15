@@ -24,6 +24,13 @@ where
     }
 }
 
+pub trait MakeAuthorizer {
+    type Authorizer: Authorizer;
+    type Error: std::error::Error + Send;
+
+    fn make_authorizer(&mut self) -> Result<Self::Authorizer, Self::Error>;
+}
+
 /// Authorization error type placeholder.
 #[derive(Debug, thiserror::Error)]
 #[error("An error occurred checking client permissions.")]
@@ -31,13 +38,24 @@ pub struct AuthorizeError;
 
 /// Default implementation that always denies any operation a client intends to perform.
 /// This implementation will be used if custom authorization mechanism was not provided.
-pub struct DefaultAuthorizer;
+pub struct DenyAll;
 
-impl Authorizer for DefaultAuthorizer {
+impl Authorizer for DenyAll {
     type Error = AuthorizeError;
 
     fn authorize(&self, _: Activity) -> Result<bool, Self::Error> {
         Ok(false)
+    }
+}
+
+/// Default implementation that always allows any operation a client intends to perform.
+pub struct AllowAll;
+
+impl Authorizer for AllowAll {
+    type Error = AuthorizeError;
+
+    fn authorize(&self, _: Activity) -> Result<bool, Self::Error> {
+        Ok(true)
     }
 }
 

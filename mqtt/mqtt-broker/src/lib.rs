@@ -16,7 +16,7 @@ use std::sync::Arc;
 use mqtt3::*;
 use serde::{Deserialize, Serialize};
 
-mod auth;
+pub mod auth;
 mod broker;
 mod configuration;
 mod connection;
