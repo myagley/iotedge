@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use mqtt3::proto;
+use serde::{Deserialize, Serialize};
 
 use crate::{AuthId, ClientId};
 
@@ -10,16 +11,16 @@ pub trait Authorizer {
     type Error: std::error::Error + Send;
 
     /// Authorizes a MQTT client to perform some action.
-    fn authorize(&self, activity: Activity) -> Result<bool, Self::Error>;
+    fn authorize(&mut self, activity: Activity) -> Result<bool, Self::Error>;
 }
 
 impl<F> Authorizer for F
 where
-    F: Fn(Activity) -> Result<bool, AuthorizeError> + Sync,
+    F: FnMut(Activity) -> Result<bool, AuthorizeError> + Sync,
 {
     type Error = AuthorizeError;
 
-    fn authorize(&self, activity: Activity) -> Result<bool, Self::Error> {
+    fn authorize(&mut self, activity: Activity) -> Result<bool, Self::Error> {
         self(activity)
     }
 }
@@ -55,7 +56,7 @@ pub struct DenyAll;
 impl Authorizer for DenyAll {
     type Error = AuthorizeError;
 
-    fn authorize(&self, _: Activity) -> Result<bool, Self::Error> {
+    fn authorize(&mut self, _: Activity) -> Result<bool, Self::Error> {
         Ok(false)
     }
 }
@@ -75,7 +76,7 @@ pub struct AllowAll;
 impl Authorizer for AllowAll {
     type Error = AuthorizeError;
 
-    fn authorize(&self, _: Activity) -> Result<bool, Self::Error> {
+    fn authorize(&mut self, _: Activity) -> Result<bool, Self::Error> {
         Ok(true)
     }
 }
@@ -90,6 +91,8 @@ impl MakeAuthorizer for AllowAll {
 }
 
 /// Describes a client activity to authorized.
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct Activity {
     auth_id: AuthId,
     client_id: ClientId,
@@ -115,6 +118,8 @@ impl Activity {
 }
 
 /// Describes a client operation to be authorized.
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Operation {
     Connect(Connect),
     Publish(Publish),
@@ -148,6 +153,8 @@ impl Operation {
 }
 
 /// Represents a client attempt to connect to the broker.
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct Connect {
     will: Option<Publication>,
 }
@@ -161,6 +168,8 @@ impl From<proto::Connect> for Connect {
 }
 
 /// Represents a publication description without payload to be used for authorization.
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct Publication {
     topic_name: String,
     qos: proto::QoS,
@@ -178,6 +187,8 @@ impl From<proto::Publication> for Publication {
 }
 
 /// Represents a client attempt to publish a new message on a specified MQTT topic.
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct Publish {
     publication: Publication,
 }
@@ -199,6 +210,8 @@ impl From<proto::Publish> for Publish {
 }
 
 /// Represents a client attempt to subscribe to a specified MQTT topic in order to received messages.
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct Subscribe {
     topic_filter: String,
     qos: proto::QoS,
@@ -220,6 +233,8 @@ impl From<proto::SubscribeTo> for Subscribe {
 }
 
 /// Represents a client to received a message from a specified MQTT topic.
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct Receive {
     publication: Publication,
 }

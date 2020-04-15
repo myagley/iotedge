@@ -3,6 +3,7 @@ use std::{convert::TryInto, env, io};
 use clap::{crate_description, crate_name, crate_version, App, Arg};
 use futures_util::pin_mut;
 use mqtt_broker::*;
+use mqtt_opa::MakeOpaAuthorizer;
 use tokio::time::{Duration, Instant};
 use tracing::{info, warn, Level};
 use tracing_subscriber::{fmt, EnvFilter};
@@ -34,6 +35,8 @@ async fn run() -> Result<(), Error> {
     let shutdown = shutdown::shutdown();
     pin_mut!(shutdown);
 
+    let authorizer = MakeOpaAuthorizer::from_rego("data.mqtt.allow", "policy.rego").unwrap();
+
     // Setup the snapshotter
     let mut persistor = FilePersistor::new(
         env::current_dir().expect("can't get cwd").join("state"),
@@ -43,7 +46,7 @@ async fn run() -> Result<(), Error> {
     let state = persistor.load()?.unwrap_or_else(BrokerState::default);
     let broker = BrokerBuilder::default()
         .authenticator(|_| Ok(Some(AuthId::Anonymous)))
-        .authorizer(|_| Ok(true))
+        .authorizer(authorizer)
         .state(state)
         .build();
     info!("state loaded.");

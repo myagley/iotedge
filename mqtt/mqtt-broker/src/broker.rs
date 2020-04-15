@@ -443,7 +443,7 @@ where
         sub: proto::Subscribe,
     ) -> Result<(), Error> {
         let subscriptions = if let Some(session) = self.sessions.get_mut(client_id) {
-            let (suback, subscriptions) = subscribe(&self.authorizer, session, sub)?;
+            let (suback, subscriptions) = subscribe(&mut self.authorizer, session, sub)?;
             session.send(ClientEvent::SubAck(suback))?;
             subscriptions
         } else {
@@ -466,7 +466,7 @@ where
         if let Some(session) = self.sessions.get_mut(client_id) {
             for mut publication in publications {
                 publication.retain = true;
-                publish_to(&self.authorizer, session, &publication)?;
+                publish_to(&mut self.authorizer, session, &publication)?;
             }
         } else {
             debug!("no session for {}", client_id);
@@ -838,7 +838,7 @@ where
         publication.retain = false;
 
         for session in self.sessions.values_mut() {
-            if let Err(e) = publish_to(&self.authorizer, session, &publication) {
+            if let Err(e) = publish_to(&mut self.authorizer, session, &publication) {
                 warn!(message = "error processing message", error = %e);
             }
         }
@@ -848,7 +848,7 @@ where
 }
 
 fn subscribe<Z>(
-    authorizer: &Z,
+    authorizer: &mut Z,
     session: &mut Session,
     subscribe: proto::Subscribe,
 ) -> Result<(proto::SubAck, Vec<Subscription>), Error>
@@ -908,7 +908,7 @@ where
 }
 
 fn publish_to<Z>(
-    authorizer: &Z,
+    authorizer: &mut Z,
     session: &mut Session,
     publication: &proto::Publication,
 ) -> Result<(), Error>
