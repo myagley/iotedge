@@ -112,6 +112,14 @@ impl Activity {
         }
     }
 
+    pub fn client_id(&self) -> &ClientId {
+        &self.client_id
+    }
+
+    pub fn auth_id(&self) -> &AuthId {
+        &self.auth_id
+    }
+
     pub fn operation(&self) -> &Operation {
         &self.operation
     }

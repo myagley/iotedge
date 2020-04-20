@@ -1,5 +1,4 @@
 use std::fmt;
-use std::path::Path;
 
 use mqtt_broker::auth::{Activity, Authorizer, MakeAuthorizer};
 use opa_wasm::Policy;
@@ -24,9 +23,8 @@ pub struct MakeOpaAuthorizer {
 }
 
 impl MakeOpaAuthorizer {
-    pub fn from_rego<P: AsRef<Path>>(query: &str, path: P) -> Result<MakeOpaAuthorizer, Error> {
-        let module = opa_compiler::compile(query, path).unwrap();
-        let auth = Self { module };
+    pub fn from_bytes(bytes: Vec<u8>) -> Result<MakeOpaAuthorizer, Error> {
+        let auth = Self { module: bytes };
         Ok(auth)
     }
 }

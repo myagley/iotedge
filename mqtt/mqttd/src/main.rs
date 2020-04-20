@@ -35,7 +35,8 @@ async fn run() -> Result<(), Error> {
     let shutdown = shutdown::shutdown();
     pin_mut!(shutdown);
 
-    let authorizer = MakeOpaAuthorizer::from_rego("data.mqtt.allow", "policy.rego").unwrap();
+    let wasm_bytes = opa_go::wasm::compile("data.mqtt.allow", "policy.rego").unwrap();
+    let authorizer = MakeOpaAuthorizer::from_bytes(wasm_bytes).unwrap();
 
     // Setup the snapshotter
     let mut persistor = FilePersistor::new(

@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 mqtt-broker = { path = "../mqtt-broker" }
-opa-compiler = { version = "0.1.0", git = "https://github.com/myagley/opa-rs" }
-opa-wasm = { version = "0.1.0", git = "https://github.com/myagley/opa-rs" }
+
+opa-wasm = { path = "../../../policy/opa-wasm" }

@@ -1234,7 +1234,6 @@ name = "mqtt-opa"
 version = "0.1.0"
 dependencies = [
  "mqtt-broker",
- "opa-compiler",
  "opa-wasm",
 ]
 
@@ -1265,6 +1264,7 @@ dependencies = [
  "mqtt-broker",
  "mqtt-opa",
  "native-tls",
+ "opa-go",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -1389,17 +1389,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebcec7c9c2a95cacc7cd0ecb89d8a8454eca13906f6deb55258ffff0adeb9405"
 
 [[package]]
-name = "opa-compiler"
+name = "opa-go"
 version = "0.1.0"
-source = "git+https://github.com/myagley/opa-rs#eb75fdf65445bc614d7da53eaf6310e9dcc3bf67"
 dependencies = [
- "opa-compiler-sys",
+ "opa-go-sys",
 ]
 
 [[package]]
-name = "opa-compiler-sys"
+name = "opa-go-sys"
 version = "0.1.0"
-source = "git+https://github.com/myagley/opa-rs#eb75fdf65445bc614d7da53eaf6310e9dcc3bf67"
 dependencies = [
  "bindgen",
  "gobuild",
@@ -1408,7 +1406,6 @@ dependencies = [
 [[package]]
 name = "opa-wasm"
 version = "0.1.0"
-source = "git+https://github.com/myagley/opa-rs#eb75fdf65445bc614d7da53eaf6310e9dcc3bf67"
 dependencies = [
  "anyhow",
  "chrono",
