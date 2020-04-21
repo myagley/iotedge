@@ -2,7 +2,8 @@
 members = [
     "mqtt3",
     "mqtt-broker",
-    "mqtt-opa",
+    "mqtt-opa-go",
+    "mqtt-opa-wasm",
     "mqttd",
 ]
 

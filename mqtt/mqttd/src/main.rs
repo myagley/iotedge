@@ -3,7 +3,8 @@ use std::{convert::TryInto, env, io};
 use clap::{crate_description, crate_name, crate_version, App, Arg};
 use futures_util::pin_mut;
 use mqtt_broker::*;
-use mqtt_opa::MakeOpaAuthorizer;
+use mqtt_opa_go::OpaAuthorizer;
+// use mqtt_opa_wasm::MakeOpaAuthorizer;
 use tokio::time::{Duration, Instant};
 use tracing::{info, warn, Level};
 use tracing_subscriber::{fmt, EnvFilter};
@@ -35,8 +36,9 @@ async fn run() -> Result<(), Error> {
     let shutdown = shutdown::shutdown();
     pin_mut!(shutdown);
 
-    let wasm_bytes = opa_go::wasm::compile("data.mqtt.allow", "policy.rego").unwrap();
-    let authorizer = MakeOpaAuthorizer::from_bytes(wasm_bytes).unwrap();
+    let authorizer = OpaAuthorizer::from_rego("data.mqtt.allow", "policy.rego").unwrap();
+    // let wasm_bytes = opa_go::wasm::compile("data.mqtt.allow", "policy.rego").unwrap();
+    // let authorizer = mqtt_opa_wasm::MakeOpaAuthorizer::from_bytes(wasm_bytes).unwrap();
 
     // Setup the snapshotter
     let mut persistor = FilePersistor::new(
@@ -48,6 +50,7 @@ async fn run() -> Result<(), Error> {
     let broker = BrokerBuilder::default()
         .authenticator(|_| Ok(Some(AuthId::Anonymous)))
         .authorizer(authorizer)
+        // .authorizer(mqtt_broker::auth::AllowAll)
         .state(state)
         .build();
     info!("state loaded.");

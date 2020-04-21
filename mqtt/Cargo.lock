@@ -1230,7 +1230,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "mqtt-opa"
+name = "mqtt-opa-go"
+version = "0.1.0"
+dependencies = [
+ "mqtt-broker",
+ "opa-go",
+]
+
+[[package]]
+name = "mqtt-opa-wasm"
 version = "0.1.0"
 dependencies = [
  "mqtt-broker",
@@ -1262,7 +1270,8 @@ dependencies = [
  "clap",
  "futures-util",
  "mqtt-broker",
- "mqtt-opa",
+ "mqtt-opa-go",
+ "mqtt-opa-wasm",
  "native-tls",
  "opa-go",
  "tokio",
@@ -1393,6 +1402,8 @@ name = "opa-go"
 version = "0.1.0"
 dependencies = [
  "opa-go-sys",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

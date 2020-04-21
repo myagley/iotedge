@@ -184,6 +184,12 @@ pub struct Publication {
     retain: bool,
 }
 
+impl Publication {
+    pub fn topic_name(&self) -> &str {
+        &self.topic_name
+    }
+}
+
 impl From<proto::Publication> for Publication {
     fn from(publication: proto::Publication) -> Self {
         Self {
@@ -199,6 +205,12 @@ impl From<proto::Publication> for Publication {
 #[serde(rename_all = "snake_case")]
 pub struct Publish {
     publication: Publication,
+}
+
+impl Publish {
+    pub fn publication(&self) -> &Publication {
+        &self.publication
+    }
 }
 
 impl From<proto::Publish> for Publish {

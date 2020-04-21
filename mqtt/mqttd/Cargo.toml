@@ -15,5 +15,6 @@ tracing = "0.1"
 tracing-subscriber = "0.1"
 
 mqtt-broker = { path = "../mqtt-broker" }
-mqtt-opa = { path = "../mqtt-opa" }
+mqtt-opa-go = { path = "../mqtt-opa-go" }
+mqtt-opa-wasm = { path = "../mqtt-opa-wasm" }
 opa-go = { path = "../../../policy/opa-go" }

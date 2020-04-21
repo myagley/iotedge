@@ -1,5 +1,5 @@
 [package]
-name = "mqtt-opa"
+name = "mqtt-opa-go"
 version = "0.1.0"
 authors = ["Mike Yagley <myagley@gmail.com>"]
 edition = "2018"
@@ -9,4 +9,4 @@ edition = "2018"
 [dependencies]
 mqtt-broker = { path = "../mqtt-broker" }
 
-opa-wasm = { path = "../../../policy/opa-wasm" }
+opa-go = { path = "../../../policy/opa-go" }
