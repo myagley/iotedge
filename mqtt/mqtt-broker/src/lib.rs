@@ -11,6 +11,7 @@
     clippy::missing_errors_doc
 )]
 
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use mqtt3::*;
@@ -65,6 +66,7 @@ impl std::fmt::Display for ClientId {
 pub struct ConnReq {
     client_id: ClientId,
     connect: proto::Connect,
+    remote_addr: SocketAddr,
     certificate: Option<Certificate>,
     handle: ConnectionHandle,
 }
@@ -73,12 +75,14 @@ impl ConnReq {
     pub fn new(
         client_id: ClientId,
         connect: proto::Connect,
+        remote_addr: SocketAddr,
         certificate: Option<Certificate>,
         handle: ConnectionHandle,
     ) -> Self {
         Self {
             client_id,
             connect,
+            remote_addr,
             certificate,
             handle,
         }
@@ -90,6 +94,10 @@ impl ConnReq {
 
     pub fn connect(&self) -> &proto::Connect {
         &self.connect
+    }
+
+    pub fn remote_addr(&self) -> &SocketAddr {
+        &self.remote_addr
     }
 
     pub fn handle(&self) -> &ConnectionHandle {

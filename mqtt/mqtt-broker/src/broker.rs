@@ -316,7 +316,7 @@ where
         };
 
         // Check client permissions to connect
-        let operation = Operation::new_connect(connreq.connect().clone());
+        let operation = Operation::new_connect(&connreq);
         let activity = Activity::new(auth_id.clone(), client_id.clone(), operation);
         match self.authorizer.authorize(activity) {
             Ok(true) => {

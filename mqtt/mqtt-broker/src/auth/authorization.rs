@@ -1,9 +1,11 @@
 #![allow(dead_code)]
 
+use std::net::IpAddr;
+
 use mqtt3::proto;
 use serde::{Deserialize, Serialize};
 
-use crate::{AuthId, ClientId};
+use crate::{AuthId, ClientId, ConnReq};
 
 /// A trait to check a MQTT client permissions to perform some actions.
 pub trait Authorizer {
@@ -137,8 +139,20 @@ pub enum Operation {
 
 impl Operation {
     /// Creates a new operation context for CONNECT request.
-    pub fn new_connect(connect: proto::Connect) -> Self {
-        Self::Connect(connect.into())
+    pub fn new_connect(connect: &ConnReq) -> Self {
+        let will = connect.connect().will.as_ref().map(|p| {
+            Publication {
+                topic_name: p.topic_name.to_owned(),
+                qos: p.qos,
+                retain: p.retain,
+            }
+        });
+
+        let c = Connect {
+            remote_addr: connect.remote_addr().ip(),
+            will,
+        };
+        Self::Connect(c)
     }
 
     /// Creates a new operation context for PUBLISH request.
@@ -164,15 +178,8 @@ impl Operation {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Connect {
+    remote_addr: IpAddr,
     will: Option<Publication>,
-}
-
-impl From<proto::Connect> for Connect {
-    fn from(connect: proto::Connect) -> Self {
-        Self {
-            will: connect.will.map(Into::into),
-        }
-    }
 }
 
 /// Represents a publication description without payload to be used for authorization.

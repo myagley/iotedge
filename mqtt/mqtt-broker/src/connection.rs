@@ -119,7 +119,7 @@ where
                     codec.get_mut().set_read_timeout(Some(keep_alive));
                 }
 
-                let req = ConnReq::new(client_id.clone(), connect, certificate, connection_handle);
+                let req = ConnReq::new(client_id.clone(), connect, remote_addr, certificate, connection_handle);
                 let event = ClientEvent::ConnReq(req);
                 let message = Message::Client(client_id.clone(), event);
                 broker_handle.send(message)?;
